@@ -94,6 +94,36 @@ app.post("/payment_delivery", async (req, res) => {
   }
 });
 
+//어드민로그인
+app.post("/login/admin", async (req, res) => {
+  const { username, password } = req.body;
+  const userDoc = await Admin.findOne({ username });
+  const passOk = bcrypt.compareSync(password, userDoc.password);
+
+  //true or false
+  if (passOk) {
+    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
+      if (err) throw err;
+      res.cookie("token", token).json({
+        id: userDoc._id,
+        username,
+      });
+    });
+  } else {
+    res.status(400).json({ message: "비밀번호가 틀렸습니다. " });
+  }
+});
+
+// const PayDeliveryModel = mongoose.model("PayDelivery", PayDeliverySchema);
+// app.get("/orderlsit", (req, res) => {
+//   PayDeliveryModel.find((err, data) => {
+//     if (err) {
+//       return res.status(500).send(err);
+//     }
+//     return res.json(data);
+//   });
+// });
+
 app.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
