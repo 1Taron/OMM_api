@@ -9,6 +9,7 @@ app.use(express.json());
 // mongodb 연결
 const mongoose = require("mongoose");
 const Customer = require("./models/Customer");
+const PayDelivery = require("./models/PayDelivery");
 mongoose.connect(
   "mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@omm.wdu5kds.mongodb.net/OMM?retryWrites=true&w=majority"
 );
@@ -75,6 +76,22 @@ app.get("/profile", (req, res) => {
 //로그아웃
 app.post("/logout", (req, res) => {
   res.cookie("token", "").json("로그아웃");
+});
+
+//결제(배달)
+app.post("/payment_delivery", async (req, res) => {
+  const { pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  try {
+    const payDDoc = await PayDelivery.create({
+      pd_quantity,
+      pd_price,
+      pd_adress,
+      pd_context,
+    });
+    res.json(payDDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
 });
 
 app.listen(4000, () => {
