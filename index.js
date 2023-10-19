@@ -96,6 +96,7 @@ app.post("/payment_delivery", async (req, res) => {
 });
 
 //어드민로그인
+const Admin = require("./models/Admin");
 app.post("/login/admin", async (req, res) => {
   const { username, password } = req.body;
   const userDoc = await Admin.findOne({ username });
@@ -115,13 +116,22 @@ app.post("/login/admin", async (req, res) => {
   }
 });
 
+app.get("/orderlsit", (req, res) => {
+  PayDelivery.find((err, data) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    return res.json(data);
+  });
+});
+
 //재료 총 가격 및 개수
 app.post("/food", async (req, res) => {
   const { Account, Sangchu_index } = req.body;
   try {
     const userDoc = await FoodAccount.create({
       Account,
-      Sangchu_index
+      Sangchu_index,
     });
     res.json(userDoc);
   } catch (e) {
@@ -129,6 +139,7 @@ app.post("/food", async (req, res) => {
   }
 });
 
+<<<<<<< Updated upstream
 //재료 총 가격 및 개수 /payment 보내기
 app.get("/food", async (req, res) => {
   try {
@@ -155,6 +166,8 @@ app.get("/food", async (req, res) => {
 //   });
 // });
 
+=======
+>>>>>>> Stashed changes
 app.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
