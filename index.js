@@ -10,6 +10,7 @@ app.use(express.json());
 const mongoose = require("mongoose");
 const Customer = require("./models/Customer");
 const PayDelivery = require("./models/PayDelivery");
+const FoodAccount = require("./models/FoodAccount");
 mongoose.connect(
   "mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@omm.wdu5kds.mongodb.net/OMM?retryWrites=true&w=majority"
 );
