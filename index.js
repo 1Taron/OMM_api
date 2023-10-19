@@ -114,6 +114,20 @@ app.post("/login/admin", async (req, res) => {
   }
 });
 
+//재료 총 가격 및 개수
+app.post("/food", async (req, res) => {
+  const { Account, Sangchu_index } = req.body;
+  try {
+    const userDoc = await FoodAccount.create({
+      Account,
+      Sangchu_index
+    });
+    res.json(userDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
+
 // const PayDeliveryModel = mongoose.model("PayDelivery", PayDeliverySchema);
 // app.get("/orderlsit", (req, res) => {
 //   PayDeliveryModel.find((err, data) => {
