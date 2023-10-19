@@ -129,6 +129,22 @@ app.post("/food", async (req, res) => {
   }
 });
 
+//재료 총 가격 및 개수 /payment 보내기
+app.get("/food", async (req, res) => {
+  try {
+    const result = await FoodAccount.findOne({}).sort({ _id: 1 }).exec();
+    if (result) {
+
+      res.json(result);
+    } else {
+      res.status(404).json({ error: '데이터를 찾을수 없음' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: '데이터 가져오는중 실패' });
+  }
+});
+
 // const PayDeliveryModel = mongoose.model("PayDelivery", PayDeliverySchema);
 // app.get("/orderlsit", (req, res) => {
 //   PayDeliveryModel.find((err, data) => {
