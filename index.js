@@ -4,6 +4,7 @@ const app = express();
 //cors
 const cors = require("cors");
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+// app.use(cors({ credentials: true, origin: "http://localhost:3001" }));
 app.use(express.json());
 
 // mongodb 연결
@@ -24,7 +25,8 @@ const salt = bcrypt.genSaltSync(10);
 
 //회원가입
 app.post("/register", async (req, res) => {
-  const { username, password, name, tel, email } = req.body;
+  const { username, password, name, tel, email, mainadress, sideadress } =
+    req.body;
   try {
     const userDoc = await Customer.create({
       username,
@@ -33,7 +35,7 @@ app.post("/register", async (req, res) => {
       tel,
       email,
       mainadress,
-      sideadress
+      sideadress,
     });
     res.json(userDoc);
   } catch (e) {
@@ -52,13 +54,25 @@ app.post("/login", async (req, res) => {
 
   //true or false
   if (passOk) {
-    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie("token", token).json({
-        id: userDoc._id,
+    jwt.sign(
+      {
         username,
-      });
-    });
+        id: userDoc._id,
+        mainadress: userDoc.mainadress,
+        sideadress: userDoc.sideadress,
+      },
+      secret,
+      {},
+      (err, token) => {
+        if (err) throw err;
+        res.cookie("token", token).json({
+          id: userDoc._id,
+          username,
+          mainadress: userDoc.mainadress,
+          sideadress: userDoc.sideadress,
+        });
+      }
+    );
   } else {
     res.status(400).json({ message: "비밀번호가 틀렸습니다. " });
   }
@@ -81,24 +95,20 @@ app.post("/logout", (req, res) => {
   res.cookie("token", "").json("로그아웃");
 });
 
-//어드민로그인
-const Admin = require("./models/Admin");
-app.post("/login/admin", async (req, res) => {
-  const { username, password } = req.body;
-  const userDoc = await Admin.findOne({ username });
-  const passOk = bcrypt.compareSync(password, userDoc.password);
-
-  //true or false
-  if (passOk) {
-    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
-      if (err) throw err;
-      res.cookie("token", token).json({
-        id: userDoc._id,
-        username,
-      });
+//결제(배달)
+app.post("/payment_delivery", async (req, res) => {
+  const { pd_kind, pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  try {
+    const payDDoc = await PayDelivery.create({
+      pd_kind,
+      pd_quantity,
+      pd_price,
+      pd_adress,
+      pd_context,
     });
-  } else {
-    res.status(400).json({ message: "비밀번호가 틀렸습니다. " });
+    res.json(payDDoc);
+  } catch (e) {
+    res.status(400).json(e);
   }
 });
 
@@ -131,23 +141,42 @@ app.get("/food", async (req, res) => {
   }
 });
 
-//결제(배달)
-app.post("/payment_delivery", async (req, res) => {
-  const { pd_quantity, pd_price, pd_adress, pd_context } = req.body;
-  try {
-    const payDDoc = await PayDelivery.create({
-      pd_quantity,
-      pd_price,
-      pd_adress,
-      pd_context,
+//어드민로그인
+const Admin = require("./models/Admin");
+app.post("/admin/login", async (req, res) => {
+  const { username, password } = req.body;
+  const userDoc = await Admin.findOne({ username });
+  const passOk = bcrypt.compareSync(password, userDoc.password);
+
+  //true or false
+  if (passOk) {
+    jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
+      if (err) throw err;
+      res.cookie("token2", token).json({
+        id: userDoc._id,
+        username,
+      });
     });
-    res.json(payDDoc);
-  } catch (e) {
-    res.status(400).json(e);
+  } else {
+    res.status(400).json({ message: "비밀번호가 틀렸습니다. " });
   }
 });
-// .limit(10)
-app.get("/orderlist", async (req, res) => {
+
+//로그인 후 유효한 토큰을 갖고 있는지 검증
+app.get("/admin/profile", (req, res) => {
+  const { token2 } = req.cookies;
+  jwt.verify(token2, secret, {}, (err, info) => {
+    if (err) throw err;
+    res.json(info);
+  });
+});
+
+//로그아웃
+app.post("/admin/logout", (req, res) => {
+  res.cookie("token2", "").json("로그아웃");
+});
+
+app.get("/admin/orderlist", async (req, res) => {
   try {
     const result = await PayDelivery.find().sort({ createdAt: -1 }).exec();
     if (result) {
