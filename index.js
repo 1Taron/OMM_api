@@ -79,22 +79,6 @@ app.post("/logout", (req, res) => {
   res.cookie("token", "").json("로그아웃");
 });
 
-//결제(배달)
-app.post("/payment_delivery", async (req, res) => {
-  const { pd_quantity, pd_price, pd_adress, pd_context } = req.body;
-  try {
-    const payDDoc = await PayDelivery.create({
-      pd_quantity,
-      pd_price,
-      pd_adress,
-      pd_context,
-    });
-    res.json(payDDoc);
-  } catch (e) {
-    res.status(400).json(e);
-  }
-});
-
 //어드민로그인
 const Admin = require("./models/Admin");
 app.post("/login/admin", async (req, res) => {
@@ -116,15 +100,6 @@ app.post("/login/admin", async (req, res) => {
   }
 });
 
-app.get("/orderlsit", (req, res) => {
-  PayDelivery.find((err, data) => {
-    if (err) {
-      return res.status(500).send(err);
-    }
-    return res.json(data);
-  });
-});
-
 //재료 총 가격 및 개수
 app.post("/food", async (req, res) => {
   const { Account, Sangchu_index } = req.body;
@@ -139,24 +114,51 @@ app.post("/food", async (req, res) => {
   }
 });
 
-<<<<<<< Updated upstream
 //재료 총 가격 및 개수 /payment 보내기
 app.get("/food", async (req, res) => {
   try {
     const result = await FoodAccount.findOne({}).sort({ _id: 1 }).exec();
     if (result) {
-
       res.json(result);
     } else {
-      res.status(404).json({ error: '데이터를 찾을수 없음' });
+      res.status(404).json({ error: "데이터를 찾을수 없음" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: '데이터 가져오는중 실패' });
+    res.status(500).json({ error: "데이터 가져오는중 실패" });
   }
 });
 
-// const PayDeliveryModel = mongoose.model("PayDelivery", PayDeliverySchema);
+//결제(배달)
+app.post("/payment_delivery", async (req, res) => {
+  const { pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  try {
+    const payDDoc = await PayDelivery.create({
+      pd_quantity,
+      pd_price,
+      pd_adress,
+      pd_context,
+    });
+    res.json(payDDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
+
+app.get("/orderlsit", async (req, res) => {
+  try {
+    const result = await PayDelivery.find().sort({ _id: 1 }).exec();
+    if (result) {
+      res.json(result);
+    } else {
+      res.status(404).json({ error: "데이터를 찾을수 없음" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "데이터 가져오는중 실패" });
+  }
+});
+
 // app.get("/orderlsit", (req, res) => {
 //   PayDeliveryModel.find((err, data) => {
 //     if (err) {
@@ -166,8 +168,6 @@ app.get("/food", async (req, res) => {
 //   });
 // });
 
-=======
->>>>>>> Stashed changes
 app.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
