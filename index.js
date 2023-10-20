@@ -144,10 +144,10 @@ app.post("/payment_delivery", async (req, res) => {
     res.status(400).json(e);
   }
 });
-
-app.get("/orderlsit", async (req, res) => {
+// .limit(10)
+app.get("/orderlist", async (req, res) => {
   try {
-    const result = await PayDelivery.find().sort({ _id: 1 }).exec();
+    const result = await PayDelivery.find().sort({ createdAt: -1 }).exec();
     if (result) {
       res.json(result);
     } else {
@@ -158,15 +158,6 @@ app.get("/orderlsit", async (req, res) => {
     res.status(500).json({ error: "데이터 가져오는중 실패" });
   }
 });
-
-// app.get("/orderlsit", (req, res) => {
-//   PayDeliveryModel.find((err, data) => {
-//     if (err) {
-//       return res.status(500).send(err);
-//     }
-//     return res.json(data);
-//   });
-// });
 
 app.listen(4000, () => {
   console.log("4000에서 돌고 있음");
