@@ -32,6 +32,8 @@ app.post("/register", async (req, res) => {
       name,
       tel,
       email,
+      mainadress,
+      sideadress
     });
     res.json(userDoc);
   } catch (e) {

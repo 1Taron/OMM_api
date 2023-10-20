@@ -9,6 +9,8 @@ const CustomerSchema = new Schema(
     name: { type: String, required: true, min: 4 },
     tel: { type: String },
     email: { type: String },
+    mainadress: { type: String },
+    sideadress: { type: String },
 
     author: { type: Schema.Types.ObjectId, ref: "Customer" },
   },
