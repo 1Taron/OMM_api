@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const Customer = require("./models/Customer");
 const PayDelivery = require("./models/PayDelivery");
 const FoodAccount = require("./models/FoodAccount");
+const Notify = require("./models/Notify");
 mongoose.connect(
   "mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@omm.wdu5kds.mongodb.net/OMM?retryWrites=true&w=majority"
 );
@@ -203,6 +204,51 @@ app.get("/admin/orderlist", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "데이터 가져오는중 실패" });
+  }
+});
+
+//어드민 주문 수락
+app.post("/admin/ordernotify", async (req, res) => {
+  const { n_state, n_eta } = req.body;
+  try {
+    const notifyDoc = await Notify.create({
+      n_state,
+      n_eta,
+    });
+    res.json(notifyDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
+//알림
+app.get("/ordernotify", async (req, res) => {
+  try {
+    const result = await Notify.find().sort({ createdAt: -1 }).exec();
+    if (result) {
+      res.json(result);
+    } else {
+      res.status(404).json({ error: "데이터를 찾을수 없음" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "데이터 가져오는중 실패" });
+  }
+});
+
+//paydelivery_document 삭제
+app.delete("/admin/deletePayDeliveryDocument", async (req, res) => {
+  try {
+    const documentId = req.body.documentId;
+    const result = await PayDelivery.findByIdAndDelete(documentId);
+
+    if (result) {
+      res.json("Document가 성공적으로 삭제되었습니다.");
+    } else {
+      res.status(404).json("Document를 찾을 수 없습니다.");
+    }
+  } catch (error) {
+    console.error("문서 삭제 오류:", error);
+    res.status(500).json("서버 오류");
   }
 });
 
