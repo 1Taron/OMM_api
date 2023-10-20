@@ -111,6 +111,22 @@ app.post("/payment_delivery", async (req, res) => {
     res.status(400).json(e);
   }
 });
+//결제(포장)
+app.post("/payment_pickup", async (req, res) => {
+  const { pd_kind, pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  try {
+    const payDDoc = await PayDelivery.create({
+      pd_kind,
+      pd_quantity,
+      pd_price,
+      pd_adress,
+      pd_context,
+    });
+    res.json(payDDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
 
 //재료 총 가격 및 개수
 app.post("/food", async (req, res) => {

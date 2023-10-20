@@ -7,7 +7,7 @@ const PayDeliverySchema = new Schema(
     pd_quantity: { type: Number, required: true },
     pd_price: { type: Number, required: true },
     pd_adress: { type: String, required: true },
-    pd_context: { type: String, required: true },
+    pd_context: { type: String, required: false },
   },
   {
     timestamps: true,
