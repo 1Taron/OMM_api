@@ -252,6 +252,23 @@ app.delete("/admin/deletePayDeliveryDocument", async (req, res) => {
   }
 });
 
+//food_document 삭제
+app.delete("/deletefoodDoc", async (req, res) => {
+  try {
+    const documentId = req.body.documentId;
+    const result = await FoodAccount.findByIdAndDelete(documentId);
+
+    if (result) {
+      res.json("Document가 성공적으로 삭제되었습니다.");
+    } else {
+      res.status(404).json("Document를 찾을 수 없습니다.");
+    }
+  } catch (error) {
+    console.error("문서 삭제 오류:", error);
+    res.status(500).json("서버 오류");
+  }
+});
+
 app.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
