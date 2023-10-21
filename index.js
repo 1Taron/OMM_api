@@ -59,6 +59,7 @@ app.post("/login", async (req, res) => {
       {
         username,
         id: userDoc._id,
+        name: userDoc.name,
         mainadress: userDoc.mainadress,
         sideadress: userDoc.sideadress,
       },
@@ -69,6 +70,7 @@ app.post("/login", async (req, res) => {
         res.cookie("token", token).json({
           id: userDoc._id,
           username,
+          name: userDoc.name,
           mainadress: userDoc.mainadress,
           sideadress: userDoc.sideadress,
         });
@@ -98,7 +100,14 @@ app.post("/logout", (req, res) => {
 
 //결제(배달)
 app.post("/payment_delivery", async (req, res) => {
-  const { pd_kind, pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  const {
+    pd_kind,
+    pd_quantity,
+    pd_price,
+    pd_adress,
+    pd_context,
+    pd_ingredient,
+  } = req.body;
   try {
     const payDDoc = await PayDelivery.create({
       pd_kind,
@@ -106,6 +115,7 @@ app.post("/payment_delivery", async (req, res) => {
       pd_price,
       pd_adress,
       pd_context,
+      pd_ingredient,
     });
     res.json(payDDoc);
   } catch (e) {
@@ -114,7 +124,14 @@ app.post("/payment_delivery", async (req, res) => {
 });
 //결제(포장)
 app.post("/payment_pickup", async (req, res) => {
-  const { pd_kind, pd_quantity, pd_price, pd_adress, pd_context } = req.body;
+  const {
+    pd_kind,
+    pd_quantity,
+    pd_price,
+    pd_adress,
+    pd_context,
+    pd_ingredient,
+  } = req.body;
   try {
     const payDDoc = await PayDelivery.create({
       pd_kind,
@@ -122,6 +139,7 @@ app.post("/payment_pickup", async (req, res) => {
       pd_price,
       pd_adress,
       pd_context,
+      pd_ingredient,
     });
     res.json(payDDoc);
   } catch (e) {
