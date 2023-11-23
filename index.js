@@ -1,11 +1,16 @@
 const express = require("express");
+//이미지 설정(multer)
+const multer = require("multer");
+const fs = require("fs");
+const path = require('path');
 const app = express();
 
 //cors
 const cors = require("cors");
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
-// app.use(cors({ credentials: true, origin: "http://localhost:3001" }));
+app.use(cors({ credentials: true, origin: "http://172.20.10.2:3000" }));
 app.use(express.json());
+
+
 
 // mongodb 연결
 const mongoose = require("mongoose");
@@ -20,13 +25,31 @@ mongoose.connection.once("open", () => {
   console.log("MongoDB is Connected");
 });
 
+// 이미지 업로드 디렉토리 설정
+const upload = multer({ dest: "images" });
+
+app.get('/images/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const imagePath = path.join(__dirname, 'images', filename);
+
+  fs.readFile(imagePath, (err, data) => {
+    if (err) {
+      res.status(404).send('이미지를 찾을 수 없습니다.');
+    } else {
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
+      res.end(data);
+    }
+  });
+});
+
+
 //passward암호화
 const bcrypt = require("bcryptjs");
 const salt = bcrypt.genSaltSync(10);
 
 //회원가입
 app.post("/register", async (req, res) => {
-  const { username, password, name, tel, email, mainadress, sideadress } =
+  const { username, password, name, tel, email, mainadress, sideadress, Check1, Check2, Check3 } =
     req.body;
   try {
     const userDoc = await Customer.create({
@@ -37,6 +60,9 @@ app.post("/register", async (req, res) => {
       email,
       mainadress,
       sideadress,
+      Check1,
+      Check2,
+      Check3,
     });
     res.json(userDoc);
   } catch (e) {
@@ -85,17 +111,23 @@ app.post("/login", async (req, res) => {
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
+// 로그인 후 유효한 토큰을 갖고 있는지 검증
 app.get("/profile", (req, res) => {
   const { token } = req.cookies;
   jwt.verify(token, secret, {}, (err, info) => {
-    if (err) throw err;
-    res.json(info);
+    if (err) {
+      // JWT 검증 실패
+      res.status(401).json({ message: "유효하지 않은 토큰입니다." });
+    } else {
+      // 유효한 토큰인 경우
+      res.json(info);
+    }
   });
 });
 
-//로그아웃
+// 로그아웃
 app.post("/logout", (req, res) => {
-  res.cookie("token", "").json("로그아웃");
+  res.clearCookie("token").json({ message: "로그아웃되었습니다." });
 });
 
 //결제(배달)

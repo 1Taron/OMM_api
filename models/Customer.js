@@ -11,6 +11,9 @@ const CustomerSchema = new Schema(
     email: { type: String },
     mainadress: { type: String },
     sideadress: { type: String },
+    Check1: { type: Boolean },
+    Check2: { type: Boolean },
+    Check3: { type: Boolean },
 
     author: { type: Schema.Types.ObjectId, ref: "Customer" },
   },
