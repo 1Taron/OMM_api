@@ -2,20 +2,28 @@ const express = require("express");
 //이미지 설정(multer)
 const multer = require("multer");
 const fs = require("fs");
-const path = require('path');
+const path = require("path");
 const app = express();
 
 //cors
 const cors = require("cors");
-app.use(cors({ credentials: true, origin: "http://172.20.10.2:3000" }));
+app.use(cors({ credentials: true, origin: "http://192.168.35.2:3000" }));
 app.use(express.json());
 
-
+// IP주소 바꿔야 하는 부분
+// Frontend
+// 	DrawerUI
+// 	------- Screen --------
+// 		Home
+// 		Login
+// 		Resister1,2,3
+// 		Payment_D
+// 	-----------------------
 
 // mongodb 연결
 const mongoose = require("mongoose");
 const Customer = require("./models/Customer");
-const PayDelivery = require("./models/PayDelivery");
+const Payment = require("./models/Payment");
 const FoodAccount = require("./models/FoodAccount");
 const Notify = require("./models/Notify");
 mongoose.connect(
@@ -28,20 +36,19 @@ mongoose.connection.once("open", () => {
 // 이미지 업로드 디렉토리 설정
 const upload = multer({ dest: "images" });
 
-app.get('/images/:filename', (req, res) => {
+app.get("/images/:filename", (req, res) => {
   const filename = req.params.filename;
-  const imagePath = path.join(__dirname, 'images', filename);
+  const imagePath = path.join(__dirname, "images", filename);
 
   fs.readFile(imagePath, (err, data) => {
     if (err) {
-      res.status(404).send('이미지를 찾을 수 없습니다.');
+      res.status(404).send("이미지를 찾을 수 없습니다.");
     } else {
-      res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
+      res.writeHead(200, { "Content-Type": "image/svg+xml" });
       res.end(data);
     }
   });
 });
-
 
 //passward암호화
 const bcrypt = require("bcryptjs");
@@ -49,8 +56,18 @@ const salt = bcrypt.genSaltSync(10);
 
 //회원가입
 app.post("/register", async (req, res) => {
-  const { username, password, name, tel, email, mainadress, sideadress, Check1, Check2, Check3 } =
-    req.body;
+  const {
+    username,
+    password,
+    name,
+    tel,
+    email,
+    mainadress,
+    sideadress,
+    Check1,
+    Check2,
+    Check3,
+  } = req.body;
   try {
     const userDoc = await Customer.create({
       username,
@@ -83,11 +100,17 @@ app.post("/login", async (req, res) => {
   if (passOk) {
     jwt.sign(
       {
-        username,
         id: userDoc._id,
+        username,
+        password,
         name: userDoc.name,
         mainadress: userDoc.mainadress,
         sideadress: userDoc.sideadress,
+        email: userDoc.email,
+        tel: userDoc.tel,
+        check1: userDoc.Check1,
+        check2: userDoc.Check2,
+        check3: userDoc.Check3,
       },
       secret,
       {},
@@ -96,9 +119,15 @@ app.post("/login", async (req, res) => {
         res.cookie("token", token).json({
           id: userDoc._id,
           username,
+          password,
           name: userDoc.name,
           mainadress: userDoc.mainadress,
           sideadress: userDoc.sideadress,
+          email: userDoc.email,
+          tel: userDoc.tel,
+          check1: userDoc.Check1,
+          check2: userDoc.Check2,
+          check3: userDoc.Check3,
         });
       }
     );
@@ -131,23 +160,29 @@ app.post("/logout", (req, res) => {
 });
 
 //결제(배달)
-app.post("/payment_delivery", async (req, res) => {
+app.post("/payment", async (req, res) => {
   const {
-    pd_kind,
-    pd_quantity,
-    pd_price,
-    pd_adress,
-    pd_context,
-    pd_ingredient,
+    p_store,
+    p_kind,
+    p_quantity,
+    p_price,
+    p_adress,
+    p_request,
+    p_ingredient,
+    p_payment,
+    p_userId,
   } = req.body;
   try {
-    const payDDoc = await PayDelivery.create({
-      pd_kind,
-      pd_quantity,
-      pd_price,
-      pd_adress,
-      pd_context,
-      pd_ingredient,
+    const payDDoc = await Payment.create({
+      p_store,
+      p_kind,
+      p_quantity,
+      p_price,
+      p_adress,
+      p_request,
+      p_ingredient,
+      p_payment,
+      p_userId,
     });
     res.json(payDDoc);
   } catch (e) {
@@ -289,7 +324,7 @@ app.get("/ordernotify", async (req, res) => {
 app.delete("/admin/deletePayDeliveryDocument", async (req, res) => {
   try {
     const documentId = req.body.documentId;
-    const result = await PayDelivery.findByIdAndDelete(documentId);
+    const result = await Payment.findByIdAndDelete(documentId);
 
     if (result) {
       res.json("Document가 성공적으로 삭제되었습니다.");
