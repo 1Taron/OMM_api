@@ -38,37 +38,38 @@ mongoose.connection.once("open", () => {
 //이미지 업로드 클라에서 받기
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'images/') // 파일을 'images/'에 저장합니다.
+    cb(null, 'images/')
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname)
+    cb(null, file.originalname) // 클라이언트에서 보낸 상품명을 파일 이름으로 사용
   }
 })
 
+//사진 url로 저장
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 const upload = multer({ storage: storage })
 
-app.post('/admin/upload', upload.single('file'), (req, res) => {
+app.post('/admin/upload', upload.single('file'), async (req, res) => {
   try {
-    res.send(req.file);
-  } catch (err) {
-    res.send(400);
-  }
-});
+    console.log(req.file);
 
-//adminProduct정보 저장
-app.post("/admin/product", async (req, res) => {
-  const { category, ProductName, isChecked, Price } =
-    req.body;
-  try {
+    // 클라이언트에서 보낸 파일과 상품 정보를 처리
+    const { productName, category, isChecked, price } = req.body;
+
+    // DB에 상품 정보를 저장
     const adminProductDoc = await AdminProduct.create({
       category,
-      ProductName,
+      ProductName: productName,
       isChecked,
-      Price,
+      Price: price,
+      ImageUrl: `http://localhost:4000/images/${req.file.filename}`
     });
+
     res.json(adminProductDoc);
   } catch (e) {
-    res.status(400).json(e);
+    console.error(e);
+    res.sendStatus(500);
   }
 });
 
