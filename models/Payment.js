@@ -11,6 +11,7 @@ const PaymentSchema = new Schema(
     p_request: { type: String, required: false },
     p_ingredient: { type: String, required: false },
     p_payment: { type: String, required: true },
+    p_state: { type: String, required: true },
     p_userId: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
   },
   {

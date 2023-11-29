@@ -8,6 +8,12 @@ const app = express();
 //cors
 const cors = require("cors");
 app.use(cors());
+// app.use(
+//   cors({
+//     origin: "https://localhost:3000", // 접근 권한을 부여하는 도메인
+//     credentials: true, // 응답 헤더에 Access-Control-Allow-Credentials 추가
+//   })
+// );
 app.use(express.json());
 
 // IP주소 바꿔야 하는 부분
@@ -34,23 +40,22 @@ mongoose.connection.once("open", () => {
   console.log("MongoDB is Connected");
 });
 
-
 //이미지 업로드 클라에서 받기
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'images/')
+    cb(null, "images/");
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname) // 클라이언트에서 보낸 상품명을 파일 이름으로 사용
-  }
-})
+    cb(null, file.originalname); // 클라이언트에서 보낸 상품명을 파일 이름으로 사용
+  },
+});
 
 //사진 url로 저장
-app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use("/images", express.static(path.join(__dirname, "images")));
 
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storage });
 
-app.post('/admin/upload', upload.single('file'), async (req, res) => {
+app.post("/admin/upload", upload.single("file"), async (req, res) => {
   try {
     console.log(req.file);
 
@@ -63,7 +68,7 @@ app.post('/admin/upload', upload.single('file'), async (req, res) => {
       ProductName: productName,
       isChecked,
       Price: price,
-      ImageUrl: `http://localhost:4000/images/${req.file.filename}`
+      ImageUrl: `http://localhost:4000/images/${req.file.filename}`,
     });
 
     res.json(adminProductDoc);
@@ -74,30 +79,32 @@ app.post('/admin/upload', upload.single('file'), async (req, res) => {
 });
 
 //adminProduct정보 배출
-app.get('/admin/Productdata', async (req, res) => {
+app.get("/admin/Productdata", async (req, res) => {
   const data = await AdminProduct.find();
   res.json(data);
 });
 
 //특정 adminProduct상품 배출
-app.get('/admin/Productdata/:id', async (req, res) => {
+app.get("/admin/Productdata/:id", async (req, res) => {
   const id = req.params.id; // URL에서 ID 가져오기
   const data = await AdminProduct.findById(id); // 해당 ID의 상품 찾기
   res.json(data); // 찾은 상품을 응답으로 보내기
 });
 
 //adminProduct 상품 수정
-app.put('/admin/Productdata/:id', async (req, res) => {
+app.put("/admin/Productdata/:id", async (req, res) => {
   const id = req.params.id; // URL에서 ID 가져오기
   const updatedData = req.body; // 요청 본문에서 수정된 데이터 가져오기
 
   try {
     // 해당 ID의 상품 찾기 및 수정
-    const product = await AdminProduct.findByIdAndUpdate(id, updatedData, { new: true });
+    const product = await AdminProduct.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
 
     if (!product) {
       // 해당 ID의 상품이 없는 경우
-      res.status(404).send({ message: 'Product not found' });
+      res.status(404).send({ message: "Product not found" });
     } else {
       // 수정된 상품 정보를 응답으로 보내기
       res.json(product);
@@ -107,9 +114,6 @@ app.put('/admin/Productdata/:id', async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 });
-
-
-
 
 //passward암호화
 const bcrypt = require("bcryptjs");
@@ -231,6 +235,7 @@ app.post("/payment", async (req, res) => {
     p_request,
     p_ingredient,
     p_payment,
+    p_state,
     p_userId,
   } = req.body;
   try {
@@ -243,6 +248,7 @@ app.post("/payment", async (req, res) => {
       p_request,
       p_ingredient,
       p_payment,
+      p_state,
       p_userId,
     });
     res.json(payDDoc);
@@ -341,7 +347,7 @@ app.post("/admin/logout", (req, res) => {
 
 app.get("/admin/orderlist", async (req, res) => {
   try {
-    const result = await PayDelivery.find().sort({ createdAt: -1 }).exec();
+    const result = await Payment.find().sort({ createdAt: -1 }).exec();
     if (result) {
       res.json(result);
     } else {
@@ -412,6 +418,79 @@ app.delete("/deletefoodDoc", async (req, res) => {
   } catch (error) {
     console.error("문서 삭제 오류:", error);
     res.status(500).json("서버 오류");
+  }
+});
+
+//이미지 업로드 클라에서 받기
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "images/"); // 파일을 'images/'에 저장합니다.
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+app.post("/admin/upload", upload.single("file"), (req, res) => {
+  try {
+    res.send(req.file);
+  } catch (err) {
+    res.send(400);
+  }
+});
+
+//adminProduct정보 저장
+app.post("/admin/product", async (req, res) => {
+  const { category, ProductName, isChecked, Price } = req.body;
+  try {
+    const adminProductDoc = await AdminProduct.create({
+      category,
+      ProductName,
+      isChecked,
+      Price,
+    });
+    res.json(adminProductDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
+
+//adminProduct정보 배출
+app.get("/admin/Productdata", async (req, res) => {
+  const data = await AdminProduct.find();
+  res.json(data);
+});
+
+//특정 adminProduct상품 배출
+app.get("/admin/Productdata/:id", async (req, res) => {
+  const id = req.params.id; // URL에서 ID 가져오기
+  const data = await AdminProduct.findById(id); // 해당 ID의 상품 찾기
+  res.json(data); // 찾은 상품을 응답으로 보내기
+});
+
+//adminProduct 상품 수정
+app.put("/admin/Productdata/:id", async (req, res) => {
+  const id = req.params.id; // URL에서 ID 가져오기
+  const updatedData = req.body; // 요청 본문에서 수정된 데이터 가져오기
+
+  try {
+    // 해당 ID의 상품 찾기 및 수정
+    const product = await AdminProduct.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
+
+    if (!product) {
+      // 해당 ID의 상품이 없는 경우
+      res.status(404).send({ message: "Product not found" });
+    } else {
+      // 수정된 상품 정보를 응답으로 보내기
+      res.json(product);
+    }
+  } catch (error) {
+    // 에러 처리
+    res.status(500).send({ message: error.message });
   }
 });
 
