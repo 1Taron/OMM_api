@@ -7,6 +7,7 @@ const Admin_ProductSchema = new Schema({
     isChecked: { type: Boolean, require: true },
     Price: { type: String, require: true },
     ImageUrl: { type: String, require: true },
+    count: { type: Number, require: true },
 });
 
 const AdminProductModel = model("AdminProduct", Admin_ProductSchema);
