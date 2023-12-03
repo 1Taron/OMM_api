@@ -85,7 +85,27 @@ app.get("/admin/Productdata", async (req, res) => {
   res.json(data);
 });
 
-//삭제 기능
+//User정보 배출
+app.get("/admin/Userdata", async (req, res) => {
+  const data = await Customer.find();
+  res.json(data);
+});
+
+//특정 User데이터 배출
+app.get("/admin/Userdata/:id", async (req, res) => {
+  const id = req.params.id; // URL에서 ID 가져오기
+  const data = await Customer.findById(id); // 해당 ID의 상품 찾기
+  res.json(data); // 찾은 상품을 응답으로 보내기
+});
+
+//특정 adminProduct상품 배출
+app.get("/admin/Productdata/:id", async (req, res) => {
+  const id = req.params.id; // URL에서 ID 가져오기
+  const data = await AdminProduct.findById(id); // 해당 ID의 상품 찾기
+  res.json(data); // 찾은 상품을 응답으로 보내기
+});
+
+//adminProduct 삭제 기능
 app.delete('/admin/Productdata/:id', async (req, res) => {
   try {
     const product = await AdminProduct.findByIdAndDelete(req.params.id);
@@ -96,13 +116,6 @@ app.delete('/admin/Productdata/:id', async (req, res) => {
   } catch (e) {
     res.status(500).send();
   }
-});
-
-//특정 adminProduct상품 배출
-app.get("/admin/Productdata/:id", async (req, res) => {
-  const id = req.params.id; // URL에서 ID 가져오기
-  const data = await AdminProduct.findById(id); // 해당 ID의 상품 찾기
-  res.json(data); // 찾은 상품을 응답으로 보내기
 });
 
 //adminProduct 상품 수정
