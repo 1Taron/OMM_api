@@ -465,15 +465,15 @@ const io = socketIo(server, {
   }
 });;
 
-io.on('connection', function(socket){
+io.on('connection', function (socket) {
   console.log('a user connected');
 
-  socket.on('order_received', function(msg){
+  socket.on('order_received', function (msg) {
     console.log('order received: ' + msg);
     io.emit('order_received', msg);
   });
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function () {
     console.log('user disconnected');
   });
 });
@@ -486,6 +486,12 @@ Notify.watch().on('change', data => {
 
 server.listen(4000, () => {
   console.log("4000에서 돌고 있음");
+});
+
+//주문상세 배출
+app.get("/HistoryDetail", async (req, res) => {
+  const data = await Payment.find();
+  res.json(data);
 });
 
 // app.listen(4000, () => {
