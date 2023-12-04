@@ -85,6 +85,8 @@ app.get("/admin/Productdata", async (req, res) => {
   res.json(data);
 });
 
+//삭제 기능
+// app.delete("/admin/Productdata/:id", async (req, res) => {
 //User정보 배출
 app.get("/admin/Userdata", async (req, res) => {
   const data = await Customer.find();
@@ -388,11 +390,13 @@ app.get("/admin/orderlist", async (req, res) => {
 
 //어드민 주문 수락
 app.post("/admin/ordernotify", async (req, res) => {
-  const { n_state, n_eta } = req.body;
+  const { n_state, n_eta, n_store, n_userId } = req.body;
   try {
     const notifyDoc = await Notify.create({
       n_state,
       n_eta,
+      n_store,
+      n_userId,
     });
     res.json(notifyDoc);
   } catch (e) {
@@ -447,10 +451,47 @@ app.delete("/deletefoodDoc", async (req, res) => {
     res.status(500).json("서버 오류");
   }
 });
-app.listen(4000, () => {
+
+//알림 실험 구역
+
+const http = require('http');
+const socketIo = require('socket.io');
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});;
+
+io.on('connection', function(socket){
+  console.log('a user connected');
+
+  socket.on('order_received', function(msg){
+    console.log('order received: ' + msg);
+    io.emit('order_received', msg);
+  });
+
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
+});
+
+Notify.watch().on('change', data => {
+  console.log('notifydbDataChanged');
+  io.emit('notifydbDataChanged', data);
+});
+
+
+server.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
 
-//Taron
-//mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@cluster0.rz71rvi.mongodb.net/?retryWrites=true&w=majority
-//mongodb+srv://maruj7899:EHf6v9J98dQLouBm@cluster0.wzlg0e7.mongodb.net/?retryWrites=true&w=majority
+// app.listen(4000, () => {
+//   console.log("4000에서 돌고 있음");
+// });
+
+// Taron
+// mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@cluster0.rz71rvi.mongodb.net/?retryWrites=true&w=majority
+// mongodb+srv://maruj7899:EHf6v9J98dQLouBm@cluster0.wzlg0e7.mongodb.net/?retryWrites=true&w=majority
