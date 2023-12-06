@@ -13,6 +13,7 @@ const PaymentSchema = new Schema(
     p_payment: { type: String, required: true },
     p_state: { type: String, required: true },
     p_userId: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+    p_review:{type:Boolean, required:true},
   },
   {
     timestamps: true,

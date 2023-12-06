@@ -33,6 +33,7 @@ const Payment = require("./models/Payment");
 const FoodAccount = require("./models/FoodAccount");
 const Notify = require("./models/Notify");
 const AdminProduct = require("./models/Admin_Product");
+const Review = require("./models/Review");
 mongoose.connect(
   "mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@omm.wdu5kds.mongodb.net/OMM?retryWrites=true&w=majority"
 );
@@ -281,6 +282,7 @@ app.post("/payment", async (req, res) => {
       p_payment,
       p_state,
       p_userId,
+      p_review : false,
     });
     res.json(payDDoc);
   } catch (e) {
@@ -407,17 +409,28 @@ app.post("/admin/ordernotify", async (req, res) => {
 });
 //알림
 app.get("/ordernotify", async (req, res) => {
-  try {
-    const result = await Notify.find().sort({ createdAt: -1 }).exec();
-    if (result) {
-      res.json(result);
+  const { token } = req.cookies;
+  jwt.verify(token, secret, {}, async (err, info) => {
+    if (err) {
+      // JWT 검증 실패
+      res.status(401).json({ message: "유효하지 않은 토큰입니다." });
     } else {
-      res.status(404).json({ error: "데이터를 찾을수 없음" });
+      const userId = info.id; // 토큰에서 _id를 가져옵니다.
+
+      try {
+        const result = await Notify.find({ n_userId: userId }).sort({ createdAt: -1 }).exec();
+
+        if (result) {
+          res.json(result);
+        } else {
+          res.status(404).json({ error: "데이터를 찾을수 없음" });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "데이터 가져오는중 실패" });
+      }
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "데이터 가져오는중 실패" });
-  }
+  });
 });
 
 //paydelivery_document 삭제
@@ -485,6 +498,11 @@ Notify.watch().on('change', data => {
   io.emit('notifydbDataChanged', data);
 });
 
+Payment.watch().on('change', data => {
+  console.log('paymentDataChanged');
+  io.emit('paymentDataChanged', data);
+});
+
 
 server.listen(4000, () => {
   console.log("4000에서 돌고 있음");
@@ -492,9 +510,54 @@ server.listen(4000, () => {
 
 //주문상세 배출
 app.get("/HistoryDetail", async (req, res) => {
-  const data = await Payment.find();
-  res.json(data);
+  const { token } = req.cookies;
+  jwt.verify(token, secret, {}, async (err, info) => {
+    if (err) {
+      // JWT 검증 실패
+      res.status(401).json({ message: "유효하지 않은 토큰입니다." });
+    } else {
+      const userId = info.id; // 토큰에서 _id를 가져옵니다.
+
+      try {
+        const data = await Payment.find({ p_userId: userId }); // 해당 사용자의 주문내역만 검색합니다.
+        res.json(data);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "데이터 가져오는 중 실패" });
+      }
+    }
+  });
 });
+
+app.post("/review", async (req, res) => {
+  const {
+    r_review,
+    r_username,
+    r_rating,
+    r_ingredient,
+    r_good,
+    ImageUrl,
+    r_paymentId,
+    r_userId,
+  } = req.body;
+  try {
+    const reviewDoc = await Review.create({
+      r_review,
+      r_username,
+      r_rating,
+      r_ingredient,
+      r_good,
+      ImageUrl,
+      r_paymentId,
+      r_userId,
+    });
+    res.json(reviewDoc);
+  } catch (e) {
+    res.status(400).json(e);
+  }
+});
+
+
 
 // app.listen(4000, () => {
 //   console.log("4000에서 돌고 있음");
