@@ -68,7 +68,7 @@ app.post("/admin/upload", upload.single("file"), async (req, res) => {
       ProductName: productName,
       isChecked,
       Price: price,
-      ImageUrl: `http://localhost:4000/images/${req.file.filename}`,
+      ImageUrl: `images/${req.file.filename}`,
       count,
     });
 
