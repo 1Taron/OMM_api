@@ -57,7 +57,6 @@ const upload = multer({ storage: storage });
 
 app.post("/admin/upload", upload.single("file"), async (req, res) => {
   try {
-    console.log(req.file);
 
     // 클라이언트에서 보낸 파일과 상품 정보를 처리
     const { productName, category, isChecked, price, count } = req.body;
@@ -120,27 +119,30 @@ app.delete('/admin/Productdata/:id', async (req, res) => {
   }
 });
 
-//adminProduct 상품 수정
-app.put("/admin/Productdata/:id", async (req, res) => {
-  const id = req.params.id; // URL에서 ID 가져오기
-  const updatedData = req.body; // 요청 본문에서 수정된 데이터 가져오기
+//admin Productdata 수정
+app.put('/admin/Productdata/:id', upload.single('file'), async (req, res) => {
+  const { productName, category, isChecked, price } = req.body;
+  const file = req.file;
+
+  const imageUrl = file ? 'images/' + file.filename : undefined;
 
   try {
-    // 해당 ID의 상품 찾기 및 수정
-    const product = await AdminProduct.findByIdAndUpdate(id, updatedData, {
-      new: true,
-    });
+    const product = await AdminProduct.findByIdAndUpdate(req.params.id, {
+      ProductName: productName,
+      category,
+      isChecked,
+      Price: price,
+      ...(imageUrl && { imageUrl })
+    }, { new: true });
 
     if (!product) {
-      // 해당 ID의 상품이 없는 경우
-      res.status(404).send({ message: "Product not found" });
-    } else {
-      // 수정된 상품 정보를 응답으로 보내기
-      res.json(product);
+      return res.status(404).json({ message: 'Product not found' });
     }
-  } catch (error) {
-    // 에러 처리
-    res.status(500).send({ message: error.message });
+
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
