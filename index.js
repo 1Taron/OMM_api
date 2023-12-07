@@ -58,7 +58,6 @@ const upload = multer({ storage: storage });
 
 app.post("/admin/upload", upload.single("file"), async (req, res) => {
   try {
-
     // 클라이언트에서 보낸 파일과 상품 정보를 처리
     const { productName, category, isChecked, price, count } = req.body;
 
@@ -108,7 +107,7 @@ app.get("/admin/Productdata/:id", async (req, res) => {
 });
 
 //adminProduct 삭제 기능
-app.delete('/admin/Productdata/:id', async (req, res) => {
+app.delete("/admin/Productdata/:id", async (req, res) => {
   try {
     const product = await AdminProduct.findByIdAndDelete(req.params.id);
 
@@ -121,29 +120,33 @@ app.delete('/admin/Productdata/:id', async (req, res) => {
 });
 
 //admin Productdata 수정
-app.put('/admin/Productdata/:id', upload.single('file'), async (req, res) => {
+app.put("/admin/Productdata/:id", upload.single("file"), async (req, res) => {
   const { productName, category, isChecked, price } = req.body;
   const file = req.file;
 
-  const imageUrl = file ? 'images/' + file.filename : undefined;
+  const imageUrl = file ? "images/" + file.filename : undefined;
 
   try {
-    const product = await AdminProduct.findByIdAndUpdate(req.params.id, {
-      ProductName: productName,
-      category,
-      isChecked,
-      Price: price,
-      ...(imageUrl && { imageUrl })
-    }, { new: true });
+    const product = await AdminProduct.findByIdAndUpdate(
+      req.params.id,
+      {
+        ProductName: productName,
+        category,
+        isChecked,
+        Price: price,
+        ...(imageUrl && { imageUrl }),
+      },
+      { new: true }
+    );
 
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: "Product not found" });
     }
 
     res.json(product);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -282,7 +285,7 @@ app.post("/payment", async (req, res) => {
       p_payment,
       p_state,
       p_userId,
-      p_review : false,
+      p_review: false,
     });
     res.json(payDDoc);
   } catch (e) {
@@ -418,7 +421,9 @@ app.get("/ordernotify", async (req, res) => {
       const userId = info.id; // 토큰에서 _id를 가져옵니다.
 
       try {
-        const result = await Notify.find({ n_userId: userId }).sort({ createdAt: -1 }).exec();
+        const result = await Notify.find({ n_userId: userId })
+          .sort({ createdAt: -1 })
+          .exec();
 
         if (result) {
           res.json(result);
@@ -469,40 +474,39 @@ app.delete("/deletefoodDoc", async (req, res) => {
 
 //알림 실험 구역
 
-const http = require('http');
-const socketIo = require('socket.io');
+const http = require("http");
+const socketIo = require("socket.io");
 
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
-});;
+    methods: ["GET", "POST"],
+  },
+});
 
-io.on('connection', function (socket) {
-  console.log('a user connected');
+io.on("connection", function (socket) {
+  console.log("a user connected");
 
-  socket.on('order_received', function (msg) {
-    console.log('order received: ' + msg);
-    io.emit('order_received', msg);
+  socket.on("order_received", function (msg) {
+    console.log("order received: " + msg);
+    io.emit("order_received", msg);
   });
 
-  socket.on('disconnect', function () {
-    console.log('user disconnected');
+  socket.on("disconnect", function () {
+    console.log("user disconnected");
   });
 });
 
-Notify.watch().on('change', data => {
-  console.log('notifydbDataChanged');
-  io.emit('notifydbDataChanged', data);
+Notify.watch().on("change", (data) => {
+  console.log("notifydbDataChanged");
+  io.emit("notifydbDataChanged", data);
 });
 
-Payment.watch().on('change', data => {
-  console.log('paymentDataChanged');
-  io.emit('paymentDataChanged', data);
+Payment.watch().on("change", (data) => {
+  console.log("paymentDataChanged");
+  io.emit("paymentDataChanged", data);
 });
-
 
 server.listen(4000, () => {
   console.log("4000에서 돌고 있음");
@@ -540,6 +544,7 @@ app.post("/review", async (req, res) => {
     r_paymentId,
     r_userId,
   } = req.body;
+  console.log(req.body);
   try {
     const reviewDoc = await Review.create({
       r_review,
@@ -550,14 +555,13 @@ app.post("/review", async (req, res) => {
       ImageUrl,
       r_paymentId,
       r_userId,
+      r_reply: "",
     });
     res.json(reviewDoc);
   } catch (e) {
     res.status(400).json(e);
   }
 });
-
-
 
 // app.listen(4000, () => {
 //   console.log("4000에서 돌고 있음");
