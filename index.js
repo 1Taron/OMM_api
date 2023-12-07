@@ -533,18 +533,19 @@ app.get("/HistoryDetail", async (req, res) => {
   });
 });
 
-app.post("/review", async (req, res) => {
+app.post("/review", upload.single("file"), async (req, res) => {
   const {
     r_review,
     r_username,
     r_rating,
     r_ingredient,
     r_good,
-    ImageUrl,
     r_paymentId,
     r_userId,
   } = req.body;
-  console.log(req.body);
+
+  const ImageUrl1 = req.file ? req.file.filename : "";  // 이미지 파일의 파일명을 ImageUrl로 설정
+
   try {
     const reviewDoc = await Review.create({
       r_review,
@@ -552,7 +553,7 @@ app.post("/review", async (req, res) => {
       r_rating,
       r_ingredient,
       r_good,
-      ImageUrl,
+      ImageUrl: `images/${ImageUrl1}`,
       r_paymentId,
       r_userId,
       r_reply: "",
