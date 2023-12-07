@@ -557,6 +557,9 @@ app.post("/review", async (req, res) => {
       r_userId,
       r_reply: "",
     });
+
+    await Payment.updateOne({ _id: r_paymentId }, { p_review: true });
+
     res.json(reviewDoc);
   } catch (e) {
     res.status(400).json(e);
