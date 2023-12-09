@@ -381,6 +381,7 @@ app.post("/admin/logout", (req, res) => {
   res.cookie("token2", "").json("로그아웃");
 });
 
+//어드민 주문리스트 모음
 app.get("/admin/orderlist", async (req, res) => {
   try {
     const result = await Payment.find().sort({ createdAt: -1 }).exec();
@@ -394,10 +395,107 @@ app.get("/admin/orderlist", async (req, res) => {
     res.status(500).json({ error: "데이터 가져오는중 실패" });
   }
 });
+//미 접수 주문 리스트
+app.get('/admin/orderlist/before', async (req, res) => {
+  try {
+    const result = await Payment.find({ p_state: '미 접수' }).sort({ createdAt: -1 }).exec();
+    res.json(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+//주문 접수 후 주문 리스트
+app.get('/admin/orderlist/acceptOrder', async (req, res) => {
+  try {
+    const result = await Payment.find({ p_state: '주문 접수' }).sort({ createdAt: -1 }).exec();
+    res.json(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+//배달 중 후 주문 리스트
+app.get('/admin/orderlist/onDelivery', async (req, res) => {
+  try {
+    const result = await Payment.find({ p_state: { $in: ['배달 중', '포장 완료'] } }).sort({ createdAt: -1 }).exec();
+    res.json(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+//배달 완료 주문 리스트
+app.get('/admin/orderlist/deliveryCompleted', async (req, res) => {
+  try {
+    const result = await Payment.find({ p_state: { $in: ['배달 완료', '픽업 완료'] } }).sort({ createdAt: -1 }).exec();
+    res.json(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+//주문 취소 주문 리스트
+app.get('/admin/orderlist/cancelOrder', async (req, res) => {
+  try {
+    const result = await Payment.find({ p_state: '주문 취소' }).sort({ createdAt: -1 }).exec();
+    res.json(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+//어드민 주문 업데이트
+app.post('/admin/orderlist/update', async (req, res) => {
+  const { orderId, orderType } = req.body;
+  try {
+    const order = await Payment.findById(orderId);
+    let newState = '';
+    switch (order.p_state) {
+      case '미 접수':
+        newState = '주문 접수';
+        break;
+      case '주문 접수':
+        newState = orderType === '배달' ? '배달 중' : '포장 완료';
+        break;
+      case '배달 중':
+      case '포장 완료':
+        newState = orderType === '배달' ? '배달 완료' : '픽업 완료';
+        break;
+      default:
+        return res.status(400).send('Invalid state');
+    }
+    await Payment.updateOne({ _id: orderId }, { p_state: newState });
+    res.status(200).send('Order updated');
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+app.post('/admin/orderlist/cancel', async (req, res) => {
+  const { orderId } = req.body;
+  try {
+    await Payment.updateOne({ _id: orderId }, { p_state: "주문 취소" });
+    res.status(200).send('Order updated');
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
 
 //어드민 주문 수락
 app.post("/admin/ordernotify", async (req, res) => {
-  const { n_state, n_eta, n_store, n_userId } = req.body;
+  let { n_state, n_eta, n_store, n_userId, orderType } = req.body;
+  switch (n_state) {
+    case '미 접수':
+      n_state = '주문 접수';
+      break;
+    case '주문 접수':
+      n_state = orderType === '배달' ? '배달 중' : '포장 완료';
+      break;
+    case '배달 중':
+    case '포장 완료':
+      n_state = orderType === '배달' ? '배달 완료' : '픽업 완료';
+      break;
+    default:
+      return res.status(400).send('Invalid state');
+  }
   try {
     const notifyDoc = await Notify.create({
       n_state,
@@ -410,6 +508,7 @@ app.post("/admin/ordernotify", async (req, res) => {
     res.status(400).json(e);
   }
 });
+
 //알림
 app.get("/ordernotify", async (req, res) => {
   const { token } = req.cookies;
@@ -566,6 +665,7 @@ app.post("/review", upload.single("file"), async (req, res) => {
     res.status(400).json(e);
   }
 });
+
 
 // app.listen(4000, () => {
 //   console.log("4000에서 돌고 있음");
