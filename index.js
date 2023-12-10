@@ -593,7 +593,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PATCH"],
   },
 });
 
@@ -620,6 +620,19 @@ Payment.watch().on("change", (data) => {
   io.emit("paymentDataChanged", data);
 });
 
+Customer.watch().on("change", (data) => {
+  console.log("customerDataChanged");
+  io.emit("customerDataChanged", data);
+});
+
+Review.watch().on("change", (data) => {
+  console.log("reviewDataChanged");
+  io.emit("reviewDataChanged", data);
+});
+AdminProduct.watch().on("change", (data) => {
+  console.log("productDataChanged");
+  io.emit("productDataChanged", data);
+});
 server.listen(4000, () => {
   console.log("4000에서 돌고 있음");
 });
@@ -636,6 +649,26 @@ app.get("/HistoryDetail", async (req, res) => {
 
       try {
         const data = await Payment.find({ p_userId: userId }).sort({ createdAt: -1  }).exec(); // 해당 사용자의 주문내역만 검색합니다.
+        res.json(data);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "데이터 가져오는 중 실패" });
+      }
+    }
+  });
+});
+
+app.get("/reviewData", async (req, res) => {
+  const { token } = req.cookies;
+  jwt.verify(token, secret, {}, async (err, info) => {
+    if (err) {
+      // JWT 검증 실패
+      res.status(401).json({ message: "유효하지 않은 토큰입니다." });
+    } else {
+      const userId = info.id; // 토큰에서 _id를 가져옵니다.
+
+      try {
+        const data = await Review.find({ r_userId: userId }).sort({ createdAt: -1  }).exec(); // 해당 사용자의 주문내역만 검색합니다.
         res.json(data);
       } catch (error) {
         console.error(error);
@@ -679,3 +712,15 @@ app.post("/review", upload.single("file"), async (req, res) => {
   }
 });
 
+app.patch('/admin/review/:id', async (req, res) => {
+  const { id } = req.params;
+  const { reply } = req.body;
+  console.log(id + " --- " + reply);
+  try {
+      await Review.updateOne({ _id: id }, { r_reply: reply });
+      res.sendStatus(200); 
+  } catch (error) {
+      console.error(error);
+      res.status(500).send(error.message); 
+  }
+});
