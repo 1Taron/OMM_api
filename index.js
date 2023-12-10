@@ -666,11 +666,3 @@ app.post("/review", upload.single("file"), async (req, res) => {
   }
 });
 
-
-// app.listen(4000, () => {
-//   console.log("4000에서 돌고 있음");
-// });
-
-// Taron
-// mongodb+srv://Ddalkkak:w4pyl4PrbsxZAWJw@cluster0.rz71rvi.mongodb.net/?retryWrites=true&w=majority
-// mongodb+srv://maruj7899:EHf6v9J98dQLouBm@cluster0.wzlg0e7.mongodb.net/?retryWrites=true&w=majority
