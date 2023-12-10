@@ -635,7 +635,7 @@ app.get("/HistoryDetail", async (req, res) => {
       const userId = info.id; // 토큰에서 _id를 가져옵니다.
 
       try {
-        const data = await Payment.find({ p_userId: userId }); // 해당 사용자의 주문내역만 검색합니다.
+        const data = await Payment.find({ p_userId: userId }).sort({ createdAt: -1  }).exec(); // 해당 사용자의 주문내역만 검색합니다.
         res.json(data);
       } catch (error) {
         console.error(error);
