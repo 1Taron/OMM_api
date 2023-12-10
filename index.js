@@ -665,7 +665,7 @@ app.post("/review", upload.single("file"), async (req, res) => {
       r_rating,
       r_ingredient,
       r_good,
-      ImageUrl: `images/${ImageUrl1}`,
+      ImageUrl: ImageUrl1,
       r_paymentId,
       r_userId,
       r_reply: "",

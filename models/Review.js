@@ -8,7 +8,7 @@ const ReviewSchema = new Schema(
     r_rating: { type: Number, required: true },
     r_ingredient: { type: String, required: false },
     r_good: { type: String, required: false },
-    ImageUrl: { type: String, require: true },
+    ImageUrl: { type: String, require: false },
     r_paymentId: {
       type: Schema.Types.ObjectId,
       ref: "Payment",
