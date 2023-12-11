@@ -101,7 +101,7 @@ app.get("/admin/Userdata/:id", async (req, res) => {
 
 //Review정보 배출
 app.get("/admin/Reviewdata", async (req, res) => {
-  const data = await Review.find();
+  const data = await Review.find().sort({ createdAt: -1 }).exec();;
   res.json(data);
 });
 
