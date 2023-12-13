@@ -364,8 +364,8 @@ const Admin = require("./models/Admin");
 app.post("/admin/login", async (req, res) => {
   const { username, password } = req.body;
   const userDoc = await Admin.findOne({ username });
-  const passOk = bcrypt.compareSync(password, userDoc.password);
-
+  const passOk = await Admin.findOne({ password });
+  
   //true or false
   if (passOk) {
     jwt.sign({ username, id: userDoc._id }, secret, {}, (err, token) => {
@@ -373,6 +373,7 @@ app.post("/admin/login", async (req, res) => {
       res.cookie("token2", token).json({
         id: userDoc._id,
         username,
+        store : "원대점",
       });
     });
   } else {
